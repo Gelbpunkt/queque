@@ -3,8 +3,7 @@ name: Build binaries
 on:
   push:
     branches:
-      - unstable
-      - stable
+      - '*'
     tags:
       - '*'
   pull_request:
