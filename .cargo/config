@@ -6,7 +6,7 @@ build-std-features = ["panic_immediate_abort"]
 rustflags = ["-L", "native=/usr/lib"]
 
 [target.aarch64-unknown-linux-musl]
-rustflags = ["-L", "native=/aarch64-linux-musl-cross/aarch64-linux-musl/lib", "-L", "native=/aarch64-linux-musl-cross/lib/gcc/aarch64-linux-musl/10.3.1/", "-l", "static=gcc"]
+rustflags = ["-L", "native=/aarch64-linux-musl-cross/aarch64-linux-musl/lib", "-L", "native=/aarch64-linux-musl-cross/lib/gcc/aarch64-linux-musl/11.2.1/", "-l", "static=gcc"]
 linker = "aarch64-linux-musl-gcc"
 
 [target.aarch64-unknown-linux-gnu]
