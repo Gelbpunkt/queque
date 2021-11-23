@@ -1,0 +1,90 @@
+name: Build and push docker image
+on:
+  push:
+    branches:
+      - stable
+      - unstable
+    tags:
+      - '*'
+
+jobs:
+  build:
+    name: Create docker images
+    runs-on: ubuntu-20.04
+    steps:
+        - name: Checkout sources
+          uses: actions/checkout@v2.2.0
+          with:
+            fetch-depth: 0
+
+        - name: Enable experimental Docker features
+          shell: bash
+          run: |
+            mkdir -p ~/.docker
+            echo "{\"experimental\": \"enabled\"}" > ~/.docker/config.json
+
+        - name: Login to registries
+          shell: bash
+          run: |
+            echo "${{ secrets.QUAY_PASSWORD }}" | docker login -u "${{ secrets.QUAY_USERNAME }}" --password-stdin quay.io
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${{ github.actor }} --password-stdin ghcr.io
+
+        - name: Convert GITHUB_REPOSITORY into lowercase
+          run: |
+            echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+        - name: Get the version
+          id: vars
+          shell: bash
+          run: |
+            TAG=$(git tag -l | sort -V | tail -n 1)
+            BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+            if [ "${BRANCH}" != "stable" ]; then
+              TAG="${BRANCH}"
+            elif [ "${TAG}" != "$(git describe --tags)" ]; then
+              TAG="${BRANCH}"
+            fi
+            echo ::set-output name=tag::$(echo ${TAG})
+            echo ::set-output name=branch::$(echo ${BRANCH})
+
+        - name: Build the docker image for x86_64
+          shell: bash
+          run: |
+            docker build --file Dockerfile \
+              --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-amd64" \
+              --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-amd64" \
+              --tag "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-amd64" \
+              --tag "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-amd64" .
+
+        - name: Build the docker image for aarch64
+          shell: bash
+          run: |
+            docker build --file Dockerfile \
+              --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-arm64" \
+              --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-arm64" \
+              --tag "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-arm64" \
+              --tag "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-arm64" .
+
+        - name: Push the tagged Docker manifests
+          shell: bash
+          run: |
+            docker manifest create "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}" \
+              "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-amd64" \
+              "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-arm64"
+
+            docker manifest create "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}" \
+              "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-amd64" \
+              "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-arm64"
+
+            docker manifest create "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}" \
+              "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-amd64" \
+              "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-arm64"
+
+            docker manifest create "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}" \
+              "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-amd64" \
+              "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-arm64"
+
+            docker manifest push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}"
+            docker manifest push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}"
+            docker manifest push "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}"
+            docker manifest push "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}"

@@ -1,0 +1,23 @@
+[unstable]
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+
+[target.x86_64-unknown-linux-musl]
+rustflags = ["-L", "native=/usr/lib"]
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-L", "native=/aarch64-linux-musl-cross/aarch64-linux-musl/lib", "-L", "native=/aarch64-linux-musl-cross/lib/gcc/aarch64-linux-musl/10.2.1/", "-l", "static=gcc"]
+linker = "aarch64-linux-musl-gcc"
+
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
+
+[target.armv7-unknown-linux-musleabihf]
+linker = "armv7l-linux-musleabihf-gcc"
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+
+[target.x86_64-unknown-freebsd]
+linker = "clang"
+rustflags = ["-C", "link-args=--sysroot=./freebsd_sysroot --target=x86_64-unknown-freebsd12"]
