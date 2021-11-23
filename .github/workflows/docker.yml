@@ -69,6 +69,15 @@ jobs:
         - name: Push the tagged Docker manifests
           shell: bash
           run: |
+            docker push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-amd64"
+            docker push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-arm64"
+            docker push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-amd64"
+            docker push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-arm64"
+            docker push "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-amd64"
+            docker push "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-arm64"
+            docker push "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-amd64"
+            docker push "ghcr.io/${REPO}:${{steps.vars.outputs.branch}}-arm64"
+
             docker manifest create "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}" \
               "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-amd64" \
               "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-arm64"
