@@ -89,7 +89,7 @@ jobs:
             docker manifest push "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}"
             docker manifest push "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}"
 
-            if [ "${{steps.vars.outputs.branch}}" != "${{steps.vars.outputs.tag}}"]; then
+            if [ "${{steps.vars.outputs.branch}}" != "${{steps.vars.outputs.tag}}" ]; then
               docker manifest create "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}" \
                 "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-amd64" \
                 "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-arm64"
