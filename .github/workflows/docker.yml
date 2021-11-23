@@ -59,6 +59,8 @@ jobs:
           shell: bash
           run: |
             docker build --file Dockerfile \
+              --build-arg RUST_TARGET=aarch64-unknown-linux-musl \
+              --build-arg MUSL_TARGET=aarch64-linux-musl \
               --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.tag}}-arm64" \
               --tag "quay.io/${{ secrets.QUAY_USERNAME }}/queque:${{steps.vars.outputs.branch}}-arm64" \
               --tag "ghcr.io/${REPO}:${{steps.vars.outputs.tag}}-arm64" \
